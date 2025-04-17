@@ -1,0 +1,350 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row =>
+                    row.some(cell => cell !== '' && cell !== null && cell !== undefined)
+                );
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Security Effectiveness Summary</title>
+    <style>
+        :root {
+            --primary-color: #1e40af;
+            --secondary-color: #3b82f6;
+            --text-color: #1f2937;
+            --background-color: #f9fafb;
+            --card-background: #ffffff;
+            --border-color: #e5e7eb;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --chart-bar-color: #3b82f6;
+            --chart-grid-color: #d1d5db;
+            --transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #60a5fa;
+            --secondary-color: #93c5fd;
+            --text-color: #e5e7eb;
+            --background-color: #111827;
+            --card-background: #1f2937;
+            --border-color: #374151;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            --chart-bar-color: #60a5fa;
+            --chart-grid-color: #4b5563;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.7;
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: var(--transition);
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 3px solid var(--secondary-color);
+            transition: var(--transition);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin: 2rem 0 1rem;
+            transition: var(--transition);
+        }
+
+        p {
+            font-size: 1rem;
+            margin: 0.75rem 0;
+            line-height: 1.8;
+        }
+
+        ul, ol {
+            margin: 1rem 0 1.5rem 1.5rem;
+            padding-left: 1.5rem;
+        }
+
+        li {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: var(--card-background);
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
+        li:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        li strong {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.5rem 1rem;
+            background: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-color);
+            transition: var(--transition);
+        }
+
+        .theme-toggle:hover {
+            background: var(--secondary-color);
+            color: #fff;
+        }
+
+        .chart-container {
+            margin: 2rem 0;
+            padding: 1rem;
+            background: var(--card-background);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            max-width: 100%;
+            overflow-x: auto;
+            transition: var(--transition);
+        }
+
+        canvas {
+            max-width: 100%;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            html:not([data-theme="light"]) {
+                --primary-color: #60a5fa;
+                --secondary-color: #93c5fd;
+                --text-color: #e5e7eb;
+                --background-color: #111827;
+                --card-background: #1f2937;
+                --border-color: #374151;
+                --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+                --chart-bar-color: #60a5fa;
+                --chart-grid-color: #4b5563;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 0 1rem;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            h2 {
+                font-size: 1.25rem;
+            }
+
+            p, li {
+                font-size: 0.95rem;
+            }
+
+            .theme-toggle {
+                top: 0.5rem;
+                right: 0.5rem;
+                padding: 0.4rem 0.8rem;
+                font-size: 0.85rem;
+            }
+
+            .chart-container {
+                padding: 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            h2 {
+                font-size: 1.1rem;
+            }
+
+            p, li {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+
+    <h1>Executive Summary: Email Security Effectiveness (January 1 - April 10, 2025)</h1>
+
+    <h2>Overview</h2>
+    <p>Between January 1, 2025, and April 10, 2025, our email security system processed inbound emails and delivered strong results in detecting and mitigating malware and phishing (Mal/Phish) threats. The key metrics are as follows:</p>
+    <ul>
+        <li><strong>Total Mal/Phish Emails Detected:</strong> 1,046 confirmed malicious or phishing emails (after excluding false positives).</li>
+        <li><strong>False Positives:</strong> One email was incorrectly flagged and later redelivered.</li>
+        <li><strong>False Negatives:</strong> Zero admin-reported missed threats; 36 emails were initially missed, with 32 successfully remediated and 4 unsuccessfully remediated post-delivery.</li>
+        <li><strong>Remediation Success:</strong> 32 missed threats were successfully "zapped" (removed post-delivery), with 4 failed attempts.</li>
+        <li><strong>Pre-Delivery Effectiveness:</strong> 96.67% of threats were blocked before reaching users.</li>
+        <li><strong>Post-Delivery Effectiveness:</strong> 99.63% of missed threats were successfully remediated.</li>
+    </ul>
+
+    <div class="chart-container">
+        <canvas id="emailSecurityChart"></canvas>
+    </div>
+
+    <h2>Business Impact</h2>
+    <p>The robust performance of our email security system directly contributes to avoiding incidents and disruptions in the following ways:</p>
+    <ol>
+        <li><strong>Preventing Data Breaches and Financial Loss:</strong> By blocking 96.67% of malware and phishing emails before delivery, the system significantly reduces the risk of employees engaging with malicious content that could lead to data breaches, ransomware, or financial fraud.</li>
+        <li><strong>Ensuring Operational Continuity:</strong> The 99.63% post-delivery remediation rate ensures that nearly all missed threats are swiftly neutralized, minimizing potential disruptions from malware infections or phishing-driven account compromises.</li>
+        <li><strong>Reducing False Positives:</strong> A single false positive ensures that legitimate emails are rarely blocked, supporting seamless communication with clients, partners, and stakeholders.</li>
+        <li><strong>Enhancing Employee Productivity:</strong> By automatically handling threats with minimal user intervention, the system allows employees to focus on core responsibilities rather than addressing security incidents.</li>
+        <li><strong>Maintaining Brand Reputation:</strong> Proactively stopping 1,046 malicious emails and remediating 32 of 36 missed threats protects the organization from incidents that could damage customer trust or lead to public relations challenges.</li>
+    </ol>
+
+    <h2>Conclusion</h2>
+    <p>The email security system’s strong pre-delivery detection (96.67%) and near-perfect post-delivery remediation (99.63%) from January 1 to April 10, 2025, demonstrate its effectiveness in safeguarding the organization. By neutralizing 1,046 malicious emails and successfully addressing 32 of 36 that bypassed initial filters, the system significantly mitigates the risk of costly security incidents and operational disruptions. Continued refinement of detection and remediation processes will further strengthen our defenses, ensuring business continuity and protecting our reputation.</p>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            html.setAttribute('data-theme', currentTheme === 'dark' ? 'light' : 'dark');
+            updateChartColors();
+        }
+
+        // Set initial theme based on system preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        // Initialize Chart.js
+        const ctx = document.getElementById('emailSecurityChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [
+                    'Mal/Phish Detected',
+                    'False Positives',
+                    'False Negatives',
+                    'Remediation Success',
+                    'Pre-Delivery %',
+                    'Post-Delivery %'
+                ],
+                datasets: [{
+                    label: 'Email Security Metrics',
+                    data: [1046, 1, 36, 32, 96.67, 99.63],
+                    backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--chart-bar-color').trim(),
+                    borderColor: getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Count / Percentage',
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim()
+                        },
+                        grid: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--chart-grid-color').trim()
+                        },
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim()
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Metrics',
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim()
+                        },
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim()
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim()
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--card-background').trim(),
+                        titleColor: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim(),
+                        bodyColor: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim()
+                    }
+                }
+            }
+        });
+
+        function updateChartColors() {
+            chart.data.datasets[0].backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-bar-color').trim();
+            chart.data.datasets[0].borderColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
+            chart.options.scales.y.grid.color = getComputedStyle(document.documentElement).getPropertyValue('--chart-grid-color').trim();
+            chart.options.scales.y.title.color = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
+            chart.options.scales.y.ticks.color = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
+            chart.options.scales.x.title.color = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
+            chart.options.scales.x.ticks.color = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
+            chart.options.plugins.legend.labels.color = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
+            chart.options.plugins.tooltip.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--card-background').trim();
+            chart.options.plugins.tooltip.titleColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
+            chart.options.plugins.tooltip.bodyColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
+            chart.update();
+        }
+    </script>
+</body>
+</html>
